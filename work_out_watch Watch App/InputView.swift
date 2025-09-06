@@ -92,9 +92,9 @@ struct InputView: View {
                         }
                     } label: {
                         Image(systemName: "minus")
-                            .font(.title2)
+                            .font(.title3)
                             .foregroundColor(.white)
-                            .frame(width: 50, height: 50)
+                            .frame(width: 40, height: 40)
                             .background(Circle().fill(Color(red: 0.2, green: 0.2, blue: 0.2)))
                     }
                     
@@ -106,9 +106,9 @@ struct InputView: View {
                         }
                     } label: {
                         Image(systemName: "plus")
-                            .font(.title2)
+                            .font(.title3)
                             .foregroundColor(.white)
-                            .frame(width: 50, height: 50)
+                            .frame(width: 40, height: 40)
                             .background(Circle().fill(Color(red: 0.2, green: 0.2, blue: 0.2)))
                     }
                 }
@@ -118,17 +118,17 @@ struct InputView: View {
                     weight: weight,
                     repetitions: repetitions
                 )) {
-                    HStack {
+                    HStack(spacing:0) {
                         Image(systemName: "checkmark.circle.fill")
-                            .font(.title3)
+                            .font(.system(size: 16))
                         Text("記録する")
                             .font(.system(size: 16, weight: .semibold))
                     }
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
-                    .frame(height: 50)
+                    .frame(height: 44)
                     .background(
-                        RoundedRectangle(cornerRadius: 25)
+                        RoundedRectangle(cornerRadius: 22)
                             .fill(Color.green)
                     )
                 }
