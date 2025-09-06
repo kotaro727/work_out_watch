@@ -14,10 +14,6 @@ struct InputView: View {
                         .font(.title2)
                         .fontWeight(.bold)
                         .foregroundColor(.white)
-                    
-                    Text("+ / - ボタンで調整")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
                 }
                 .padding(.top)
                 
