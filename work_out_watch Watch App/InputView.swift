@@ -86,7 +86,7 @@ struct InputView: View {
                 HStack(spacing: 20) {
                     Button {
                         if isWeightFocused {
-                            weight = max(0, weight - 5)
+                            weight = max(0, weight - 1)
                         } else {
                             repetitions = max(1, repetitions - 1)
                         }
@@ -100,7 +100,7 @@ struct InputView: View {
                     
                     Button {
                         if isWeightFocused {
-                            weight += 5
+                            weight += 1
                         } else {
                             repetitions += 1
                         }
