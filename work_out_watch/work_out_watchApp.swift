@@ -8,25 +8,9 @@
 import SwiftUI
 import CoreData
 
-// PersistenceControllerの簡易版をiPhoneアプリ用に作成
-struct SimplePersistenceController {
-    static let shared = SimplePersistenceController()
-    
-    let container: NSPersistentContainer
-    
-    init() {
-        container = NSPersistentContainer(name: "WorkoutDataModel")
-        container.loadPersistentStores { _, error in
-            if let error = error {
-                fatalError("Core Data error: \(error)")
-            }
-        }
-    }
-}
-
 @main
 struct work_out_watchApp: App {
-    let persistenceController = SimplePersistenceController.shared
+    let persistenceController = PersistenceController.shared
     
     var body: some Scene {
         WindowGroup {
