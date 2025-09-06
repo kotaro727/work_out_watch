@@ -121,8 +121,9 @@ struct InputView: View {
             by: 1,
             sensitivity: .medium
         )
-        .navigationBarTitleDisplayMode(.inline)
-        .navigationBarHidden(true)
+
+        .navigationBarHidden(false)
+        .navigationBarBackButtonHidden(false)
     }
 }
 
