@@ -155,9 +155,7 @@ struct CompletionView: View {
                     .disabled(isSaved)
                     .padding(.horizontal, 8)
                 } else {
-                    Button {
-                        dismiss()
-                    } label: {
+                    NavigationLink(destination: ExerciseSelectionView()) {
                         HStack {
                             Image(systemName: "checkmark")
                                 .font(.title3)

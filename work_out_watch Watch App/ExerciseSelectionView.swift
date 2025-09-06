@@ -6,7 +6,7 @@ struct ExerciseSelectionView: View {
         ("スクワット", "figure.strengthtraining.functional"), 
         ("デッドリフト", "dumbbell.fill"),
         ("ショルダープレス", "figure.arms.open"),
-        ("バーベルロー", "figure.rowing"),
+        ("バーベルロー", "figure.strengthtraining.traditional"),
         ("インクラインベンチプレス", "figure.strengthtraining.traditional")
     ]
     
@@ -32,19 +32,10 @@ struct ExerciseSelectionView: View {
                                     Text(exercise.0)
                                         .font(.system(size: 16, weight: .medium))
                                         .foregroundColor(.white)
-                                    Text("筋力トレーニング")
-                                        .font(.system(size: 12))
-                                        .foregroundColor(.secondary)
                                 }
                                 
                                 Spacer()
-                                
-                                Button(action: {}) {
-                                    Image(systemName: "ellipsis")
-                                        .font(.system(size: 14))
-                                        .foregroundColor(.secondary)
-                                }
-                                .disabled(true)
+
                             }
                             .padding(.horizontal, 16)
                             .padding(.vertical, 12)
