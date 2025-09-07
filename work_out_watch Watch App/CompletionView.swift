@@ -41,55 +41,55 @@ struct CompletionView: View {
                         }
                     }
                     .padding(.top, 20)
-                    
-                    VStack(spacing: 12) {
-                        InfoRow(icon: "figure.strengthtraining.traditional", label: "運動", value: exerciseType)
-                        InfoRow(icon: "scalemass", label: "重量", value: "\(Int(weight)) kg")
-                        InfoRow(icon: "number", label: "回数", value: "\(repetitions) 回")
-                        InfoRow(icon: "clock", label: "日時", value: dateFormatter.string(from: Date()))
+                
+                VStack(spacing: 12) {
+                    InfoRow(icon: "figure.strengthtraining.traditional", label: "運動", value: exerciseType)
+                    InfoRow(icon: "scalemass", label: "重量", value: "\(Int(weight)) kg")
+                    InfoRow(icon: "number", label: "回数", value: "\(repetitions) 回")
+                    InfoRow(icon: "clock", label: "日時", value: dateFormatter.string(from: Date()))
+                }
+                .padding(.horizontal, 8)
+                
+                if !isSaved {
+                    Button {
+                        saveWorkout()
+                    } label: {
+                        HStack {
+                            Image(systemName: "square.and.arrow.down")
+                                .font(.title3)
+                            Text("保存")
+                                .font(.system(size: 16, weight: .semibold))
+                        }
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 50)
+                        .background(
+                            RoundedRectangle(cornerRadius: 25)
+                                .fill(Color.green)
+                        )
+                    }
+                    .disabled(isSaved)
+                    .padding(.horizontal, 8)
+                } else {
+                    NavigationLink(destination: ExerciseSelectionView()) {
+                        HStack {
+                            Image(systemName: "checkmark")
+                                .font(.title3)
+                            Text("完了")
+                                .font(.system(size: 16, weight: .semibold))
+                        }
+                        .foregroundColor(.black)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 50)
+                        .background(
+                            RoundedRectangle(cornerRadius: 25)
+                                .fill(Color.gray.opacity(0.3))
+                        )
                     }
                     .padding(.horizontal, 8)
-                    
-                    if !isSaved {
-                        Button {
-                            saveWorkout()
-                        } label: {
-                            HStack {
-                                Image(systemName: "square.and.arrow.down")
-                                    .font(.title3)
-                                Text("保存")
-                                    .font(.system(size: 16, weight: .semibold))
-                            }
-                            .foregroundColor(.white)
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 50)
-                            .background(
-                                RoundedRectangle(cornerRadius: 25)
-                                    .fill(Color.green)
-                            )
-                        }
-                        .disabled(isSaved)
-                        .padding(.horizontal, 8)
-                    } else {
-                        NavigationLink(destination: ExerciseSelectionView()) {
-                            HStack {
-                                Image(systemName: "checkmark")
-                                    .font(.title3)
-                                Text("完了")
-                                    .font(.system(size: 16, weight: .semibold))
-                            }
-                            .foregroundColor(.black)
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 50)
-                            .background(
-                                RoundedRectangle(cornerRadius: 25)
-                                    .fill(Color.gray.opacity(0.3))
-                            )
-                        }
-                        .padding(.horizontal, 8)
-                    }
                 }
             }
+        }
         }
         .navigationBarHidden(true)
         .navigationBarBackButtonHidden(isSaved)
