@@ -12,170 +12,118 @@ struct CompletionView: View {
     @State private var showConfetti = false
     
     var body: some View {
-        ScrollView {
-            VStack(spacing: 20) {
-                VStack(spacing: 12) {
-                    if isSaved {
-                        Image(systemName: "checkmark.circle.fill")
-                            .font(.system(size: 60))
-                            .foregroundColor(.green)
-                            .scaleEffect(showConfetti ? 1.2 : 1.0)
-                            .animation(.easeInOut(duration: 0.6).repeatForever(autoreverses: true), value: showConfetti)
-                        
-                        Text("記録完了!")
-                            .font(.title2)
-                            .fontWeight(.bold)
-                            .foregroundColor(.green)
-                    } else {
-                        Image(systemName: "dumbbell.fill")
-                            .font(.system(size: 50))
-                            .foregroundColor(.green)
-                        
-                        Text("ワークアウト記録")
-                            .font(.title2)
-                            .fontWeight(.bold)
+        ZStack {
+            Color.white.edgesIgnoringSafeArea(.all)
+            
+            ScrollView {
+                VStack(spacing: 20) {
+                    VStack(spacing: 12) {
+                        if isSaved {
+                            Image(systemName: "checkmark.circle.fill")
+                                .font(.system(size: 60))
+                                .foregroundColor(.green)
+                                .scaleEffect(showConfetti ? 1.2 : 1.0)
+                                .animation(.easeInOut(duration: 0.6).repeatForever(autoreverses: true), value: showConfetti)
+                            
+                            Text("記録完了!")
+                                .font(.title2)
+                                .fontWeight(.bold)
+                                .foregroundColor(.green)
+                        } else {
+                            Image(systemName: "dumbbell.fill")
+                                .font(.system(size: 50))
+                                .foregroundColor(.green)
+                            
+                            Text("ワークアウト記録")
+                                .font(.title2)
+                                .fontWeight(.bold)
+                                .foregroundColor(.black)
+                        }
+                    }
+                    .padding(.top, 20)
+                    
+                    VStack(spacing: 12) {
+                        InfoRow(icon: "figure.strengthtraining.traditional", label: "運動", value: exerciseType)
+                        InfoRow(icon: "scalemass", label: "重量", value: "\(Int(weight)) kg")
+                        InfoRow(icon: "number", label: "回数", value: "\(repetitions) 回")
+                        InfoRow(icon: "clock", label: "日時", value: dateFormatter.string(from: Date()))
+                    }
+                    .padding(.horizontal, 8)
+                    
+                    if !isSaved {
+                        Button {
+                            saveWorkout()
+                        } label: {
+                            HStack {
+                                Image(systemName: "square.and.arrow.down")
+                                    .font(.title3)
+                                Text("保存")
+                                    .font(.system(size: 16, weight: .semibold))
+                            }
                             .foregroundColor(.white)
-                    }
-                }
-                .padding(.top, 20)
-                
-                VStack(spacing: 12) {
-                    HStack {
-                        Image(systemName: "figure.strengthtraining.traditional")
-                            .foregroundColor(.green)
-                            .frame(width: 20)
-                        
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text("運動")
-                                .font(.system(size: 12))
-                                .foregroundColor(.secondary)
-                            Text(exerciseType)
-                                .font(.system(size: 16, weight: .medium))
-                                .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 50)
+                            .background(
+                                RoundedRectangle(cornerRadius: 25)
+                                    .fill(Color.green)
+                            )
                         }
-                        
-                        Spacer()
-                    }
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 12)
-                    .background(
-                        RoundedRectangle(cornerRadius: 12)
-                            .fill(Color(red: 0.1, green: 0.1, blue: 0.1))
-                    )
-                    
-                    HStack {
-                        Image(systemName: "scalemass")
-                            .foregroundColor(.green)
-                            .frame(width: 20)
-                        
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text("重量")
-                                .font(.system(size: 12))
-                                .foregroundColor(.secondary)
-                            Text("\(Int(weight)) kg")
-                                .font(.system(size: 16, weight: .medium))
-                                .foregroundColor(.white)
+                        .disabled(isSaved)
+                        .padding(.horizontal, 8)
+                    } else {
+                        NavigationLink(destination: ExerciseSelectionView()) {
+                            HStack {
+                                Image(systemName: "checkmark")
+                                    .font(.title3)
+                                Text("完了")
+                                    .font(.system(size: 16, weight: .semibold))
+                            }
+                            .foregroundColor(.black)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 50)
+                            .background(
+                                RoundedRectangle(cornerRadius: 25)
+                                    .fill(Color.gray.opacity(0.3))
+                            )
                         }
-                        
-                        Spacer()
+                        .padding(.horizontal, 8)
                     }
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 12)
-                    .background(
-                        RoundedRectangle(cornerRadius: 12)
-                            .fill(Color(red: 0.1, green: 0.1, blue: 0.1))
-                    )
-                    
-                    HStack {
-                        Image(systemName: "number")
-                            .foregroundColor(.green)
-                            .frame(width: 20)
-                        
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text("回数")
-                                .font(.system(size: 12))
-                                .foregroundColor(.secondary)
-                            Text("\(repetitions) 回")
-                                .font(.system(size: 16, weight: .medium))
-                                .foregroundColor(.white)
-                        }
-                        
-                        Spacer()
-                    }
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 12)
-                    .background(
-                        RoundedRectangle(cornerRadius: 12)
-                            .fill(Color(red: 0.1, green: 0.1, blue: 0.1))
-                    )
-                    
-                    HStack {
-                        Image(systemName: "clock")
-                            .foregroundColor(.green)
-                            .frame(width: 20)
-                        
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text("日時")
-                                .font(.system(size: 12))
-                                .foregroundColor(.secondary)
-                            Text("\(Date(), formatter: dateFormatter)")
-                                .font(.system(size: 16, weight: .medium))
-                                .foregroundColor(.white)
-                        }
-                        
-                        Spacer()
-                    }
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 12)
-                    .background(
-                        RoundedRectangle(cornerRadius: 12)
-                            .fill(Color(red: 0.1, green: 0.1, blue: 0.1))
-                    )
-                }
-                .padding(.horizontal, 8)
-                
-                if !isSaved {
-                    Button {
-                        saveWorkout()
-                    } label: {
-                        HStack {
-                            Image(systemName: "square.and.arrow.down")
-                                .font(.title3)
-                            Text("保存")
-                                .font(.system(size: 16, weight: .semibold))
-                        }
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 50)
-                        .background(
-                            RoundedRectangle(cornerRadius: 25)
-                                .fill(Color.green)
-                        )
-                    }
-                    .disabled(isSaved)
-                    .padding(.horizontal, 8)
-                } else {
-                    NavigationLink(destination: ExerciseSelectionView()) {
-                        HStack {
-                            Image(systemName: "checkmark")
-                                .font(.title3)
-                            Text("完了")
-                                .font(.system(size: 16, weight: .semibold))
-                        }
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 50)
-                        .background(
-                            RoundedRectangle(cornerRadius: 25)
-                                .fill(Color(red: 0.2, green: 0.2, blue: 0.2))
-                        )
-                    }
-                    .padding(.horizontal, 8)
                 }
             }
         }
         .navigationBarHidden(true)
         .navigationBarBackButtonHidden(isSaved)
+    }
+    
+    private struct InfoRow: View {
+        let icon: String
+        let label: String
+        let value: String
+
+        var body: some View {
+            HStack {
+                Image(systemName: icon)
+                    .foregroundColor(.green)
+                    .frame(width: 20)
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(label)
+                        .font(.system(size: 12))
+                        .foregroundColor(.gray)
+                    Text(value)
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(.black)
+                }
+
+                Spacer()
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Color.gray.opacity(0.2))
+            )
+        }
     }
     
     private func saveWorkout() {

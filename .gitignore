@@ -1,0 +1,21 @@
+# Xcode
+.DS_Store
+
+## Build generated
+build/
+DerivedData/
+
+## Various settings
+*.xccheckout
+*.moved-aside
+*.pbxuser
+*.mode1v3
+*.mode2v3
+*.perspectivev3
+*.xcuserstate
+xcuserdata/
+
+## Other
+*.moved-aside
+*.xccheckout
+*.xcodeproj
