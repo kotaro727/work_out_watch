@@ -1,5 +1,8 @@
 # Xcode
 .DS_Store
+.vscode/
+
+.build/
 
 ## Build generated
 build/

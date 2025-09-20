@@ -1,34 +1,35 @@
 import SwiftUI
 
-
 struct ContentView: View {
+    @State private var selection = 0
+    
     var body: some View {
-        HStack {
-            DayForecast(day: "Mon", high: 70, low: 50)
+        TabView(selection: $selection) {
+            WorkoutHistoryView()
+                .tag(0)
+                .tabItem {
+                    Label("履歴", systemImage: "clock.arrow.circlepath")
+                }
             
-            DayForecast(day: "Tue", high: 70, low: 50)
+            StatisticsView()
+                .tag(1)
+                .tabItem {
+                    Label("統計", systemImage: "chart.bar.xaxis")
+                }
+            
+            ExerciseSelectionView()
+                .tag(2)
+                .tabItem {
+                    Label("記録", systemImage: "plus.circle")
+                }
         }
+        .background(Theme.background.ignoresSafeArea())
     }
 }
-
 
 #Preview {
     ContentView()
-}
-
-struct DayForecast: View {
-    let day: String
-    let high: Int
-    let low: Int
-    
-    var body: some View {
-        VStack {
-            Text(day)
-            Image(systemName: "sun.max.fill")
-                .foregroundStyle(Color.yellow)
-            Text("\(high)")
-            Text("\(low)")
-        }
-        .padding()
-    }
+        .environment(\.managedObjectContext, PersistenceController.preview.container.viewContext)
+        .environmentObject(WorkoutApp())
+        .preferredColorScheme(.dark)
 }

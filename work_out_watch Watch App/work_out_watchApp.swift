@@ -10,11 +10,15 @@ import SwiftUI
 @main
 struct work_out_watch_Watch_AppApp: App {
     let persistenceController = PersistenceController.shared
+    @StateObject private var workoutApp = WorkoutApp()
 
     var body: some Scene {
         WindowGroup {
             ExerciseSelectionView()
                 .environment(\.managedObjectContext, persistenceController.container.viewContext)
+                .environmentObject(workoutApp)
+                .tint(Theme.accent)
+                .preferredColorScheme(.dark)
         }
     }
 }
