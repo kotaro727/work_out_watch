@@ -5,11 +5,11 @@ struct InputView: View {
     @State private var weight: Double = 50.0
     @State private var repetitions: Int = 10
     @Environment(\.managedObjectContext) private var viewContext
-    
+
     var body: some View {
         ZStack {
             Theme.background.ignoresSafeArea()
-            
+
             ScrollView {
                 VStack(spacing: 16) {
                     VStack(spacing: 8) {
@@ -26,47 +26,47 @@ struct InputView: View {
                             .stroke(Theme.border)
                     )
                     .clipShape(RoundedRectangle(cornerRadius: 18))
-                    
+
                     VStack(spacing: 16) {
                         VStack(spacing: 8) {
                             Text("重量")
                                 .font(.system(size: 14))
                                 .foregroundColor(Theme.textSecondary)
-                            
+
                             HStack(spacing: 16) {
                                 CircularControlButton(systemName: "minus") {
                                     weight = max(0, weight - 1)
                                 }
-                                
+
                                 Text("\(Int(weight)) kg")
                                     .font(.system(size: 26, weight: .bold))
                                     .foregroundColor(Theme.textPrimary)
                                     .frame(minWidth: 80)
-                                
+
                                 CircularControlButton(systemName: "plus") {
                                     weight += 1
                                 }
                             }
                         }
-                        
+
                         Divider()
                             .overlay(Theme.border)
-                        
+
                         VStack(spacing: 8) {
                             Text("回数")
                                 .font(.system(size: 14))
                                 .foregroundColor(Theme.textSecondary)
-                            
+
                             HStack(spacing: 16) {
                                 CircularControlButton(systemName: "minus") {
                                     repetitions = max(1, repetitions - 1)
                                 }
-                                
+
                                 Text("\(repetitions) 回")
                                     .font(.system(size: 26, weight: .bold))
                                     .foregroundColor(Theme.textPrimary)
                                     .frame(minWidth: 80)
-                                
+
                                 CircularControlButton(systemName: "plus") {
                                     repetitions += 1
                                 }
@@ -80,12 +80,14 @@ struct InputView: View {
                             .stroke(Theme.border)
                     )
                     .clipShape(RoundedRectangle(cornerRadius: 18))
-                    
-                    NavigationLink(destination: CompletionView(
-                        exerciseType: exerciseType,
-                        weight: weight,
-                        repetitions: repetitions
-                    )) {
+
+                    NavigationLink(
+                        destination: CompletionView(
+                            exerciseType: exerciseType,
+                            weight: weight,
+                            repetitions: repetitions
+                        )
+                    ) {
                         HStack(spacing: 6) {
                             Image(systemName: "checkmark.circle.fill")
                                 .font(.system(size: 18))
@@ -127,7 +129,7 @@ struct InputView: View {
 private struct CircularControlButton: View {
     let systemName: String
     let action: () -> Void
-    
+
     var body: some View {
         Button(action: action) {
             Image(systemName: systemName)
