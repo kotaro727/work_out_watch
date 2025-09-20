@@ -99,6 +99,7 @@ struct CompletionView: View {
                 }
             }
         }
+        }
         .navigationBarHidden(true)
         .navigationBarBackButtonHidden(isSaved)
     }
