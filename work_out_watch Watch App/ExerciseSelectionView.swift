@@ -11,16 +11,15 @@ struct ExerciseSelectionView: View {
     ]
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             ZStack {
-                Color.white.edgesIgnoringSafeArea(.all)
-                
+                Theme.background.ignoresSafeArea()
                 ScrollView {
                     LazyVStack(spacing: 12) {
                         Text("筋トレ記録")
                             .font(.title2)
                             .fontWeight(.bold)
-                            .foregroundColor(.black)
+                            .foregroundColor(Theme.textPrimary)
                             .padding(.top, 8)
                         
                         ForEach(exercises, id: \.0) { exercise in
@@ -43,13 +42,13 @@ struct ExerciseRowView: View {
             HStack {
                 Image(systemName: exercise.1)
                     .font(.title2)
-                    .foregroundColor(.green)
+                    .foregroundStyle(Theme.accentGradient)
                     .frame(width: 30)
                 
                 VStack(alignment: .leading, spacing: 2) {
                     Text(exercise.0)
                         .font(.system(size: 16, weight: .medium))
-                        .foregroundColor(.black)
+                        .foregroundColor(Theme.textPrimary)
                 }
                 
                 Spacer()
@@ -58,7 +57,11 @@ struct ExerciseRowView: View {
             .padding(.vertical, 12)
             .background(
                 RoundedRectangle(cornerRadius: 12)
-                    .fill(Color.gray.opacity(0.2))
+                    .fill(Theme.backgroundElevated)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(Theme.border)
             )
         }
         .buttonStyle(PlainButtonStyle())
@@ -67,4 +70,5 @@ struct ExerciseRowView: View {
 
 #Preview {
     ExerciseSelectionView()
+        .preferredColorScheme(.dark)
 }

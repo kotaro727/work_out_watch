@@ -6,7 +6,6 @@ struct ExerciseSelectionView: View {
     @EnvironmentObject var workoutApp: WorkoutApp
     @Environment(\.dismiss) private var dismiss
     
-    @State private var exercises: [Exercise] = []
     @State private var currentSession: WorkoutSession?
     @State private var showingInputView = false
     @State private var selectedExercise: Exercise?
@@ -28,31 +27,50 @@ struct ExerciseSelectionView: View {
     }
     
     var body: some View {
-        NavigationView {
-            VStack {
-                // Search Bar
-                HStack {
-                    Image(systemName: "magnifyingglass")
-                        .foregroundColor(.secondary)
-                    TextField("エクササイズを検索", text: $searchText)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
-                }
-                .padding(.horizontal)
-                
-                // Exercise List
-                List {
-                    ForEach(groupedExercises.keys.sorted(), id: \.self) { category in
-                        Section(category) {
-                            ForEach(groupedExercises[category] ?? [], id: \.exerciseID) { exercise in
-                                ExerciseRow(exercise: exercise) {
-                                    selectedExercise = exercise
-                                    startWorkoutSession()
+        NavigationStack {
+            ZStack {
+                Theme.background.ignoresSafeArea()
+                VStack(spacing: 16) {
+                    // Search Bar
+                    HStack(spacing: 12) {
+                        Image(systemName: "magnifyingglass")
+                            .foregroundColor(Theme.textSecondary)
+                        TextField("エクササイズを検索", text: $searchText)
+                            .textInputAutocapitalization(.none)
+                            .foregroundColor(Theme.textPrimary)
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 12)
+                    .background(Theme.surface)
+                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16, style: .continuous)
+                            .stroke(Theme.border)
+                    )
+                    .padding(.horizontal)
+                    
+                    // Exercise List
+                    List {
+                        ForEach(groupedExercises.keys.sorted(), id: \.self) { category in
+                            Section(header: Text(category).foregroundColor(Theme.textSecondary)) {
+                                ForEach(groupedExercises[category] ?? [], id: \.exerciseID) { exercise in
+                                    ExerciseRow(exercise: exercise) {
+                                        selectedExercise = exercise
+                                        startWorkoutSession()
+                                    }
+                                    .listRowInsets(EdgeInsets(top: 12, leading: 0, bottom: 12, trailing: 0))
+                                    .listRowBackground(Color.clear)
                                 }
                             }
+                            .headerProminence(.increased)
                         }
                     }
+                    .listStyle(.insetGrouped)
+                    .scrollContentBackground(.hidden)
+                    .background(Color.clear)
+                    .searchable(text: $searchText, prompt: "エクササイズを検索")
+                    .tint(Theme.accent)
                 }
-                .searchable(text: $searchText, prompt: "エクササイズを検索")
             }
             .navigationTitle("エクササイズ選択")
             .navigationBarTitleDisplayMode(.large)
@@ -61,6 +79,7 @@ struct ExerciseSelectionView: View {
                     Button("キャンセル") {
                         dismiss()
                     }
+                    .foregroundColor(Theme.accentSecondary)
                 }
                 
                 ToolbarItem(placement: .navigationBarTrailing) {
@@ -68,6 +87,7 @@ struct ExerciseSelectionView: View {
                         completeCurrentSession()
                     }
                     .disabled(currentSession == nil)
+                    .foregroundColor(currentSession == nil ? Theme.textTertiary : Theme.accentSecondary)
                 }
             }
             .sheet(isPresented: $showingInputView) {
@@ -81,9 +101,6 @@ struct ExerciseSelectionView: View {
                     )
                     .environmentObject(workoutApp)
                 }
-            }
-            .onAppear {
-                exercises = workoutApp.fetchExercises()
             }
         }
     }
@@ -124,12 +141,12 @@ struct ExerciseRow: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(exercise.name ?? "Unknown Exercise")
                         .font(.headline)
-                        .foregroundColor(.primary)
+                        .foregroundColor(Theme.textPrimary)
                     
                     if let muscleGroups = exercise.muscleGroups {
                         Text(muscleGroups)
                             .font(.caption)
-                            .foregroundColor(.secondary)
+                            .foregroundColor(Theme.textSecondary)
                     }
                 }
                 
@@ -137,9 +154,16 @@ struct ExerciseRow: View {
                 
                 Image(systemName: "chevron.right")
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(Theme.textTertiary)
             }
-            .contentShape(Rectangle())
+            .padding(.horizontal, 20)
+            .padding(.vertical, 16)
+            .background(Theme.backgroundElevated)
+            .overlay(
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .stroke(Theme.border)
+            )
+            .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
         }
         .buttonStyle(PlainButtonStyle())
     }

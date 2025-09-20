@@ -11,11 +11,15 @@ import CoreData
 @main
 struct work_out_watchApp: App {
     let persistenceController = PersistenceController.shared
+    @StateObject private var workoutApp = WorkoutApp()
     
     var body: some Scene {
         WindowGroup {
             ContentView()
                 .environment(\.managedObjectContext, persistenceController.container.viewContext)
+                .environmentObject(workoutApp)
+                .preferredColorScheme(.dark)
+                .tint(Theme.accent)
         }
     }
 }
