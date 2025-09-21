@@ -14,7 +14,7 @@ struct CompletionView: View {
     var body: some View {
         ZStack {
             Theme.background.ignoresSafeArea()
-            
+
             ScrollView {
                 VStack(spacing: 20) {
                     VStack(spacing: 12) {
@@ -24,8 +24,8 @@ struct CompletionView: View {
                                 .foregroundStyle(Theme.accentGradient)
                                 .scaleEffect(showConfetti ? 1.12 : 1.0)
                                 .animation(.easeInOut(duration: 0.8).repeatForever(autoreverses: true), value: showConfetti)
-                            
-                            Text("記録完了!")
+
+                            Text("記録完了！")
                                 .font(.title2)
                                 .fontWeight(.bold)
                                 .foregroundColor(Theme.accentSecondary)
@@ -33,7 +33,7 @@ struct CompletionView: View {
                             Image(systemName: "dumbbell.fill")
                                 .font(.system(size: 52))
                                 .foregroundStyle(Theme.accentGradient)
-                            
+
                             Text("ワークアウト記録")
                                 .font(.title2)
                                 .fontWeight(.bold)
@@ -41,64 +41,60 @@ struct CompletionView: View {
                         }
                     }
                     .padding(.top, 24)
-                
-                VStack(spacing: 12) {
-                    InfoRow(icon: "figure.strengthtraining.traditional", label: "運動", value: exerciseType)
-                    InfoRow(icon: "scalemass", label: "重量", value: "\(Int(weight)) kg")
-                    InfoRow(icon: "number", label: "回数", value: "\(repetitions) 回")
-                    InfoRow(icon: "clock", label: "日時", value: dateFormatter.string(from: Date()))
+
+                    VStack(spacing: 12) {
+                        InfoRow(icon: "figure.strengthtraining.traditional", label: "運動", value: exerciseType)
+                        InfoRow(icon: "scalemass", label: "重量", value: "\(Int(weight)) kg")
+                        InfoRow(icon: "number", label: "回数", value: "\(repetitions) 回")
+                        InfoRow(icon: "clock", label: "日時", value: dateFormatter.string(from: Date()))
+                    }
+
+                    if !isSaved {
+                        Button(action: saveWorkout) {
+                            HStack {
+                                Image(systemName: "square.and.arrow.down")
+                                    .font(.title3)
+                                Text("保存")
+                                    .font(.system(size: 16, weight: .semibold))
+                            }
+                            .foregroundColor(Theme.textPrimary)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 48)
+                            .background(
+                                RoundedRectangle(cornerRadius: 24)
+                                    .fill(Theme.accentGradient)
+                            )
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 24)
+                                    .stroke(Theme.border)
+                            )
+                        }
+                        .disabled(isSaved)
+                    } else {
+                        NavigationLink(destination: ExerciseSelectionView()) {
+                            HStack {
+                                Image(systemName: "checkmark")
+                                    .font(.title3)
+                                Text("完了")
+                                    .font(.system(size: 16, weight: .semibold))
+                            }
+                            .foregroundColor(Theme.accentSecondary)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 48)
+                            .background(
+                                RoundedRectangle(cornerRadius: 24)
+                                    .fill(Theme.backgroundElevated)
+                            )
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 24)
+                                    .stroke(Theme.border)
+                            )
+                        }
+                    }
                 }
                 .padding(.horizontal, 8)
-                
-                if !isSaved {
-                    Button {
-                        saveWorkout()
-                    } label: {
-                        HStack {
-                            Image(systemName: "square.and.arrow.down")
-                                .font(.title3)
-                            Text("保存")
-                                .font(.system(size: 16, weight: .semibold))
-                        }
-                        .foregroundColor(Theme.textPrimary)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 48)
-                        .background(
-                            RoundedRectangle(cornerRadius: 24)
-                                .fill(Theme.accentGradient)
-                        )
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 24)
-                                .stroke(Theme.border)
-                        )
-                    }
-                    .disabled(isSaved)
-                    .padding(.horizontal, 8)
-                } else {
-                    NavigationLink(destination: ExerciseSelectionView()) {
-                        HStack {
-                            Image(systemName: "checkmark")
-                                .font(.title3)
-                            Text("完了")
-                                .font(.system(size: 16, weight: .semibold))
-                        }
-                        .foregroundColor(Theme.accentSecondary)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 48)
-                        .background(
-                            RoundedRectangle(cornerRadius: 24)
-                                .fill(Theme.backgroundElevated)
-                        )
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 24)
-                                .stroke(Theme.border)
-                        )
-                    }
-                    .padding(.horizontal, 8)
-                }
-                }
+                .padding(.bottom, 24)
             }
-        }
         }
         .navigationBarHidden(true)
         .navigationBarBackButtonHidden(isSaved)

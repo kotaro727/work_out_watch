@@ -190,7 +190,7 @@ class WorkoutApp: NSObject, ObservableObject {
     
     func addWorkoutSet(to session: WorkoutSession, exercise: Exercise, weight: Double, repetitions: Int) {
         let context = persistenceController.container.viewContext
-        
+
         let set = WorkoutSet(context: context)
         set.setID = UUID()
         set.weight = weight
@@ -198,7 +198,12 @@ class WorkoutApp: NSObject, ObservableObject {
         set.isCompleted = true
         set.createdAt = Date()
         set.updatedAt = Date()
-        set.exercise = exercise
+
+        if let exerciseInContext = try? context.existingObject(with: exercise.objectID) as? Exercise {
+            set.exercise = exerciseInContext
+        } else {
+            set.exercise = exercise
+        }
         set.workoutSession = session
         
         // セット番号を自動設定
