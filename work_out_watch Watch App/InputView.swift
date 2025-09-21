@@ -12,13 +12,19 @@ struct InputView: View {
 
             ScrollView {
                 VStack(spacing: 16) {
-                    VStack(spacing: 8) {
+                    VStack(spacing: 10) {
+                        Image(systemName: "dumbbell.fill")
+                            .font(.system(size: 34))
+                            .foregroundStyle(Theme.accentGradient)
+                            .shadow(color: Theme.accent.opacity(0.45), radius: 12, y: 6)
+
                         Text(exerciseType)
                             .font(.title2)
                             .fontWeight(.bold)
                             .foregroundColor(Theme.textPrimary)
+                            .multilineTextAlignment(.center)
                     }
-                    .padding(.top)
+                    .padding(.vertical, 20)
                     .frame(maxWidth: .infinity)
                     .background(Theme.backgroundElevated)
                     .overlay(
@@ -27,49 +33,57 @@ struct InputView: View {
                     )
                     .clipShape(RoundedRectangle(cornerRadius: 18))
 
-                    VStack(spacing: 16) {
-                        VStack(spacing: 8) {
+                    VStack(spacing: 18) {
+                        Label {
                             Text("重量")
-                                .font(.system(size: 14))
-                                .foregroundColor(Theme.textSecondary)
+                                .font(.system(size: 15, weight: .semibold))
+                        } icon: {
+                            Image(systemName: "scalemass")
+                        }
+                        .foregroundColor(Theme.textPrimary)
 
-                            HStack(spacing: 16) {
-                                CircularControlButton(systemName: "minus") {
-                                    weight = max(0, weight - 1)
-                                }
+                        HStack(spacing: 16) {
+                            CircularControlButton(systemName: "minus") {
+                                weight = max(0, weight - 1)
+                            }
 
+                            VStack(spacing: 4) {
                                 Text("\(Int(weight)) kg")
                                     .font(.system(size: 26, weight: .bold))
                                     .foregroundColor(Theme.textPrimary)
-                                    .frame(minWidth: 80)
+                                Text("Digital Crownで微調整")
+                                    .font(.system(size: 11))
+                                    .foregroundColor(Theme.textSecondary)
+                            }
+                            .frame(minWidth: 95)
 
-                                CircularControlButton(systemName: "plus") {
-                                    weight += 1
-                                }
+                            CircularControlButton(systemName: "plus") {
+                                weight += 1
                             }
                         }
 
-                        Divider()
-                            .overlay(Theme.border)
+                        Divider().overlay(Theme.border)
 
-                        VStack(spacing: 8) {
+                        Label {
                             Text("回数")
-                                .font(.system(size: 14))
-                                .foregroundColor(Theme.textSecondary)
+                                .font(.system(size: 15, weight: .semibold))
+                        } icon: {
+                            Image(systemName: "number")
+                        }
+                        .foregroundColor(Theme.textPrimary)
 
-                            HStack(spacing: 16) {
-                                CircularControlButton(systemName: "minus") {
-                                    repetitions = max(1, repetitions - 1)
-                                }
+                        HStack(spacing: 16) {
+                            CircularControlButton(systemName: "minus") {
+                                repetitions = max(1, repetitions - 1)
+                            }
 
-                                Text("\(repetitions) 回")
-                                    .font(.system(size: 26, weight: .bold))
-                                    .foregroundColor(Theme.textPrimary)
-                                    .frame(minWidth: 80)
+                            Text("\(repetitions) 回")
+                                .font(.system(size: 26, weight: .bold))
+                                .foregroundColor(Theme.textPrimary)
+                                .frame(minWidth: 80)
 
-                                CircularControlButton(systemName: "plus") {
-                                    repetitions += 1
-                                }
+                            CircularControlButton(systemName: "plus") {
+                                repetitions += 1
                             }
                         }
                     }

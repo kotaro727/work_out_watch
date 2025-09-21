@@ -19,24 +19,17 @@ struct InputView: View {
                 ScrollView {
                     VStack(spacing: 30) {
                         // Exercise Info
-                        VStack(spacing: 8) {
+                        VStack(spacing: 12) {
+                            Image(systemName: "dumbbell.fill")
+                                .font(.system(size: 40))
+                                .foregroundStyle(Theme.accentGradient)
+                                .shadow(color: Theme.accent.opacity(0.45), radius: 12, y: 6)
+
                             Text(exercise.name ?? "Unknown Exercise")
                                 .font(.title2)
                                 .fontWeight(.bold)
                                 .foregroundColor(Theme.textPrimary)
-                            
-                            if let category = exercise.category {
-                                Text(category)
-                                    .font(.subheadline)
-                                    .foregroundColor(Theme.textSecondary)
-                            }
-                            
-                            if let muscleGroups = exercise.muscleGroups {
-                                Text(muscleGroups)
-                                    .font(.caption)
-                                    .foregroundColor(Theme.textTertiary)
-                                    .multilineTextAlignment(.center)
-                            }
+                                .multilineTextAlignment(.center)
                         }
                         .padding(.vertical, 24)
                         .frame(maxWidth: .infinity)
@@ -49,9 +42,13 @@ struct InputView: View {
                         
                         // Weight Input
                         VStack(spacing: 20) {
-                            Text("重量")
-                                .font(.headline)
-                                .foregroundColor(Theme.textPrimary)
+                            Label {
+                                Text("重量")
+                                    .font(.headline)
+                            } icon: {
+                                Image(systemName: "scalemass")
+                            }
+                            .foregroundColor(Theme.textPrimary)
                             
                             HStack(spacing: 20) {
                                 CircularControlButton(systemName: "minus") {
@@ -89,9 +86,13 @@ struct InputView: View {
                         
                         // Reps Input
                         VStack(spacing: 20) {
-                            Text("回数")
-                                .font(.headline)
-                                .foregroundColor(Theme.textPrimary)
+                            Label {
+                                Text("回数")
+                                    .font(.headline)
+                            } icon: {
+                                Image(systemName: "number")
+                            }
+                            .foregroundColor(Theme.textPrimary)
                             
                             HStack(spacing: 20) {
                                 CircularControlButton(systemName: "minus") {
