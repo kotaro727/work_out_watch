@@ -53,6 +53,9 @@ struct ExerciseSelectionView: View {
             }
             .navigationTitle("エクササイズ選択")
             .navigationBarTitleDisplayMode(.large)
+            .toolbarColorScheme(.dark, for: .navigationBar)
+            .toolbarBackground(.visible, for: .navigationBar)
+            .toolbarBackground(Theme.background.opacity(0.95), for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button("キャンセル") {
