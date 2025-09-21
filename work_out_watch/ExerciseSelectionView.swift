@@ -9,46 +9,39 @@ struct ExerciseSelectionView: View {
     @State private var currentSession: WorkoutSession?
     @State private var showingInputView = false
     @State private var selectedExercise: Exercise?
-    @State private var searchText = ""
-    
+
     @FetchRequest(
         sortDescriptors: [NSSortDescriptor(keyPath: \Exercise.name, ascending: true)]
     ) private var allExercises: FetchedResults<Exercise>
-    
-    var filteredExercises: [Exercise] {
-        if searchText.isEmpty {
-            return Array(allExercises)
-        } else {
-            return allExercises.filter { exercise in
-                exercise.name?.localizedCaseInsensitiveContains(searchText) == true ||
-                exercise.category?.localizedCaseInsensitiveContains(searchText) == true
-            }
-        }
-    }
-    
+
     var body: some View {
         NavigationStack {
             ZStack {
                 Theme.background.ignoresSafeArea()
                 List {
-                    ForEach(groupedExercises.keys.sorted(), id: \.self) { category in
-                        Section(header: Text(category).foregroundColor(Theme.textSecondary)) {
-                            ForEach(groupedExercises[category] ?? [], id: \.exerciseID) { exercise in
-                                ExerciseRow(exercise: exercise) {
+                    ForEach(exerciseGroups, id: \.name) { group in
+                        NavigationLink {
+                            ExerciseGroupDetailView(
+                                groupName: group.name,
+                                exercises: group.exercises,
+                                onSelect: { exercise in
                                     selectedExercise = exercise
                                     startWorkoutSession()
                                 }
-                                .listRowInsets(EdgeInsets(top: 12, leading: 0, bottom: 12, trailing: 0))
-                                .listRowBackground(Color.clear)
-                            }
+                            )
+                        } label: {
+                            ExerciseGroupRow(
+                                groupName: group.name,
+                                exerciseCount: group.exercises.count
+                            )
                         }
-                        .headerProminence(.increased)
+                        .listRowInsets(EdgeInsets(top: 12, leading: 0, bottom: 12, trailing: 0))
+                        .listRowBackground(Color.clear)
                     }
                 }
                 .listStyle(.insetGrouped)
                 .scrollContentBackground(.hidden)
                 .background(Color.clear)
-                .searchable(text: $searchText, prompt: "エクササイズを検索")
                 .tint(Theme.accent)
             }
             .navigationTitle("エクササイズ選択")
@@ -88,9 +81,15 @@ struct ExerciseSelectionView: View {
     }
     
     private var groupedExercises: [String: [Exercise]] {
-        Dictionary(grouping: filteredExercises) { exercise in
+        Dictionary(grouping: allExercises) { exercise in
             exercise.category ?? "その他"
         }
+    }
+    
+    private var exerciseGroups: [(name: String, exercises: [Exercise])] {
+        groupedExercises
+            .map { (key: String, value: [Exercise]) in (name: key, exercises: value.sorted { ($0.name ?? "") < ($1.name ?? "") }) }
+            .sorted { $0.name < $1.name }
     }
     
     private func startWorkoutSession() {
@@ -148,6 +147,86 @@ struct ExerciseRow: View {
             .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
         }
         .buttonStyle(PlainButtonStyle())
+    }
+}
+
+struct ExerciseGroupRow: View {
+    let groupName: String
+    let exerciseCount: Int
+    
+    var body: some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(groupName)
+                    .font(.headline)
+                    .foregroundColor(Theme.textPrimary)
+                Text("\(exerciseCount)種目")
+                    .font(.caption)
+                    .foregroundColor(Theme.textSecondary)
+            }
+            
+            Spacer()
+            
+            Image(systemName: "chevron.right")
+                .font(.caption)
+                .foregroundColor(Theme.textTertiary)
+        }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 16)
+        .background(Theme.backgroundElevated)
+        .overlay(
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .stroke(Theme.border)
+        )
+        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+    }
+}
+
+struct ExerciseGroupDetailView: View {
+    let groupName: String
+    let exercises: [Exercise]
+    let onSelect: (Exercise) -> Void
+    
+    @State private var searchText = ""
+    
+    private var filteredExercises: [Exercise] {
+        guard !searchText.isEmpty else {
+            return exercises
+        }
+        return exercises.filter { exercise in
+            exercise.name?.localizedCaseInsensitiveContains(searchText) == true ||
+            exercise.muscleGroups?.localizedCaseInsensitiveContains(searchText) == true
+        }
+    }
+    
+    var body: some View {
+        ZStack {
+            Theme.background.ignoresSafeArea()
+            List {
+                if filteredExercises.isEmpty {
+                    Text("該当する種目がありません")
+                        .font(.subheadline)
+                        .foregroundColor(Theme.textSecondary)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .listRowBackground(Color.clear)
+                } else {
+                    ForEach(filteredExercises, id: \.exerciseID) { exercise in
+                        ExerciseRow(exercise: exercise, onTap: {
+                            onSelect(exercise)
+                        })
+                        .listRowInsets(EdgeInsets(top: 12, leading: 0, bottom: 12, trailing: 0))
+                        .listRowBackground(Color.clear)
+                    }
+                }
+            }
+            .listStyle(.insetGrouped)
+            .scrollContentBackground(.hidden)
+            .background(Color.clear)
+        }
+        .searchable(text: $searchText, prompt: "種目を検索")
+        .navigationTitle(groupName)
+        .navigationBarTitleDisplayMode(.large)
+        .tint(Theme.accent)
     }
 }
 
