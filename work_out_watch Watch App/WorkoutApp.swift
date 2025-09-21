@@ -8,8 +8,9 @@ class WorkoutApp: ObservableObject {
     
     // Core managers
     let persistenceController = PersistenceController.shared
-    let healthKitManager = HealthKitManager()
+    let healthKitManager: HealthKitManager?
     let syncManager: SyncManager
+    private let isHealthKitEnabled = false
     let dataRecoveryManager: DataRecoveryManager
     
     // App state
@@ -18,9 +19,13 @@ class WorkoutApp: ObservableObject {
     
     init() {
         // Initialize dependent managers
+        let manager = isHealthKitEnabled ? HealthKitManager() : nil
+        self.healthKitManager = manager
+
         syncManager = SyncManager(
             persistenceController: persistenceController,
-            healthKitManager: healthKitManager
+            healthKitManager: manager,
+            isHealthKitEnabled: isHealthKitEnabled
         )
         dataRecoveryManager = DataRecoveryManager(
             persistenceController: persistenceController
@@ -40,9 +45,13 @@ class WorkoutApp: ObservableObject {
             // 1. Core Dataの整合性をチェック
             try await dataRecoveryManager.performDataIntegrityCheck()
             
-            // 2. HealthKit権限を確認
-            if await shouldRequestHealthKitAuthorization() {
-                try await healthKitManager.requestAuthorization()
+            // 2. HealthKit権限を確認（現在は一時的に無効化）
+            if self.isHealthKitEnabled, await shouldRequestHealthKitAuthorization() {
+                if let manager = healthKitManager {
+                    try await manager.requestAuthorization()
+                }
+            } else {
+                Self.logger.info("HealthKit authorization skipped (disabled mode)")
             }
             
             // 3. バックグラウンド同期を開始
@@ -87,7 +96,7 @@ class WorkoutApp: ObservableObject {
                 // Create default user preferences
                 let preferences = UserPreferences(context: context)
                 preferences.userID = UUID()
-                preferences.healthKitEnabled = true
+                preferences.healthKitEnabled = self.isHealthKitEnabled
                 preferences.autoSyncEnabled = true
                 preferences.defaultRestTime = 60
                 preferences.preferredUnit = "kg"

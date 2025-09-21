@@ -13,7 +13,8 @@ class SyncManager: NSObject, ObservableObject {
     @Published var pendingSyncCount = 0
     
     private let persistenceController: PersistenceController
-    private let healthKitManager: HealthKitManager
+    private let healthKitManager: HealthKitManager?
+    private let isHealthKitEnabled: Bool
     
     enum SyncStatus {
         case idle
@@ -22,9 +23,10 @@ class SyncManager: NSObject, ObservableObject {
         case failed(Error)
     }
     
-    init(persistenceController: PersistenceController, healthKitManager: HealthKitManager) {
+    init(persistenceController: PersistenceController, healthKitManager: HealthKitManager?, isHealthKitEnabled: Bool) {
         self.persistenceController = persistenceController
         self.healthKitManager = healthKitManager
+        self.isHealthKitEnabled = isHealthKitEnabled
         super.init()
         
         setupWatchConnectivity()
@@ -65,8 +67,10 @@ class SyncManager: NSObject, ObservableObject {
                 try await syncSession(session)
             }
             
-            // 2. HealthKitに未保存のセッションを保存
-            try await syncToHealthKit()
+            // 2. HealthKit同期（無効化されていない場合のみ）
+            if isHealthKitEnabled {
+                try await syncToHealthKit()
+            }
             
             await MainActor.run {
                 syncStatus = .success
@@ -172,26 +176,28 @@ class SyncManager: NSObject, ObservableObject {
     // MARK: - HealthKit Sync
     
     private func syncToHealthKit() async throws {
+        guard let healthKitManager else { return }
+
         let context = persistenceController.container.viewContext
-        
+
         let unsyncedSessions = try await context.perform {
             let request = NSFetchRequest<WorkoutSession>(entityName: "WorkoutSession")
             request.predicate = NSPredicate(format: "isSyncedToHealthKit == NO AND isCompleted == YES")
             return try context.fetch(request)
         }
-        
+
         for session in unsyncedSessions {
             do {
                 let healthKitWorkoutID = try await healthKitManager.saveWorkout(session: session)
-                
+
                 await context.perform {
                     session.isSyncedToHealthKit = true
                     session.healthKitWorkoutID = healthKitWorkoutID
                     try? context.save()
                 }
-                
+
                 Self.logger.info("Session synced to HealthKit: \(session.sessionID?.uuidString ?? "unknown")")
-                
+
             } catch {
                 Self.logger.error("Failed to sync session to HealthKit: \(error)")
                 // HealthKit同期失敗は致命的ではないので続行
