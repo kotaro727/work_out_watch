@@ -30,47 +30,26 @@ struct ExerciseSelectionView: View {
         NavigationStack {
             ZStack {
                 Theme.background.ignoresSafeArea()
-                VStack(spacing: 16) {
-                    // Search Bar
-                    HStack(spacing: 12) {
-                        Image(systemName: "magnifyingglass")
-                            .foregroundColor(Theme.textSecondary)
-                        TextField("エクササイズを検索", text: $searchText)
-                            .textInputAutocapitalization(.none)
-                            .foregroundColor(Theme.textPrimary)
-                    }
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 12)
-                    .background(Theme.surface)
-                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 16, style: .continuous)
-                            .stroke(Theme.border)
-                    )
-                    .padding(.horizontal)
-                    
-                    // Exercise List
-                    List {
-                        ForEach(groupedExercises.keys.sorted(), id: \.self) { category in
-                            Section(header: Text(category).foregroundColor(Theme.textSecondary)) {
-                                ForEach(groupedExercises[category] ?? [], id: \.exerciseID) { exercise in
-                                    ExerciseRow(exercise: exercise) {
-                                        selectedExercise = exercise
-                                        startWorkoutSession()
-                                    }
-                                    .listRowInsets(EdgeInsets(top: 12, leading: 0, bottom: 12, trailing: 0))
-                                    .listRowBackground(Color.clear)
+                List {
+                    ForEach(groupedExercises.keys.sorted(), id: \.self) { category in
+                        Section(header: Text(category).foregroundColor(Theme.textSecondary)) {
+                            ForEach(groupedExercises[category] ?? [], id: \.exerciseID) { exercise in
+                                ExerciseRow(exercise: exercise) {
+                                    selectedExercise = exercise
+                                    startWorkoutSession()
                                 }
+                                .listRowInsets(EdgeInsets(top: 12, leading: 0, bottom: 12, trailing: 0))
+                                .listRowBackground(Color.clear)
                             }
-                            .headerProminence(.increased)
                         }
+                        .headerProminence(.increased)
                     }
-                    .listStyle(.insetGrouped)
-                    .scrollContentBackground(.hidden)
-                    .background(Color.clear)
-                    .searchable(text: $searchText, prompt: "エクササイズを検索")
-                    .tint(Theme.accent)
                 }
+                .listStyle(.insetGrouped)
+                .scrollContentBackground(.hidden)
+                .background(Color.clear)
+                .searchable(text: $searchText, prompt: "エクササイズを検索")
+                .tint(Theme.accent)
             }
             .navigationTitle("エクササイズ選択")
             .navigationBarTitleDisplayMode(.large)
