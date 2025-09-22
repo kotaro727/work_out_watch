@@ -2,7 +2,7 @@ import SwiftUI
 
 struct ContentView: View {
     @State private var selection = 0
-    
+
     var body: some View {
         TabView(selection: $selection) {
             WorkoutHistoryView()
@@ -10,14 +10,14 @@ struct ContentView: View {
                 .tabItem {
                     Label("履歴", systemImage: "clock.arrow.circlepath")
                 }
-            
+
             StatisticsView()
                 .tag(1)
                 .tabItem {
                     Label("統計", systemImage: "chart.bar.xaxis")
                 }
-            
-            ExerciseSelectionView()
+
+            ExerciseSelectionView(tabSelection: $selection)
                 .tag(2)
                 .tabItem {
                     Label("記録", systemImage: "plus.circle")
