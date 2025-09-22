@@ -99,22 +99,20 @@ class WorkoutApp: NSObject, ObservableObject {
                 Self.logger.info("Created default user preferences")
             }
             
-            // Check if default exercises exist
-            let exerciseRequest = NSFetchRequest<Exercise>(entityName: "Exercise")
-            exerciseRequest.predicate = NSPredicate(format: "isCustom == NO")
-            
-            if (try? context.fetch(exerciseRequest).isEmpty) == true {
-                self.createDefaultExercises()
-                try? context.save()
-                Self.logger.info("Created default exercises")
+            do {
+                try self.syncDefaultExercises(in: context)
+                if context.hasChanges {
+                    try context.save()
+                    Self.logger.info("Default exercises synced")
+                }
+            } catch {
+                Self.logger.error("Failed to sync default exercises: \(error.localizedDescription)")
             }
         }
     }
     
-    private func createDefaultExercises() {
-        let context = persistenceController.container.viewContext
-        
-        let defaultExercises = [
+    private var defaultExercises: [(name: String, category: String, muscles: String)] {
+        [
             ("ベンチプレス", "胸", "大胸筋、三角筋前部、上腕三頭筋"),
             ("インクラインベンチプレス", "胸", "大胸筋上部、三角筋前部"),
             ("スクワット", "脚", "大腿四頭筋、大臀筋、ハムストリング"),
@@ -124,18 +122,52 @@ class WorkoutApp: NSObject, ObservableObject {
             ("プルアップ", "背中", "広背筋、上腕二頭筋"),
             ("ディップス", "胸", "大胸筋下部、上腕三頭筋"),
             ("バーベルカール", "腕", "上腕二頭筋"),
-            ("トライセップスエクステンション", "腕", "上腕三頭筋")
+            ("トライセップスエクステンション", "腕", "上腕三頭筋"),
+            ("ランジ", "脚", "大腿四頭筋、ハムストリング、大臀筋"),
+            ("レッグプレス", "脚", "大腿四頭筋、大臀筋"),
+            ("ラットプルダウン", "背中", "広背筋、上腕二頭筋"),
+            ("ケーブルフライ", "胸", "大胸筋"),
+            ("サイドレイズ", "肩", "三角筋中部"),
+            ("フェイスプル", "肩", "三角筋後部、僧帽筋"),
+            ("プランク", "体幹", "腹直筋、腹横筋、背筋群"),
+            ("ヒップスラスト", "脚", "大臀筋、ハムストリング")
         ]
-        
-        for (name, category, muscleGroups) in defaultExercises {
-            let exercise = Exercise(context: context)
-            exercise.exerciseID = UUID()
-            exercise.name = name
-            exercise.category = category
-            exercise.muscleGroups = muscleGroups
+    }
+
+    private func syncDefaultExercises(in context: NSManagedObjectContext) throws {
+        for data in defaultExercises {
+            let request = NSFetchRequest<Exercise>(entityName: "Exercise")
+            request.predicate = NSPredicate(format: "name == %@", data.name)
+            request.fetchLimit = 1
+            let existing = try context.fetch(request).first
+            let exercise = existing ?? Exercise(context: context)
+            if exercise.exerciseID == nil {
+                exercise.exerciseID = UUID()
+            }
+            exercise.name = data.name
+            exercise.category = data.category
+            exercise.muscleGroups = data.muscles
             exercise.isCustom = false
-            exercise.createdAt = Date()
             exercise.updatedAt = Date()
+            if exercise.createdAt == nil {
+                exercise.createdAt = Date()
+            }
+        }
+        try removeDuplicateDefaultExercises(in: context)
+    }
+
+    private func removeDuplicateDefaultExercises(in context: NSManagedObjectContext) throws {
+        let request = NSFetchRequest<Exercise>(entityName: "Exercise")
+        request.predicate = NSPredicate(format: "isCustom == NO")
+        let exercises = try context.fetch(request)
+        var seenNames = Set<String>()
+        for exercise in exercises {
+            let key = (exercise.name ?? "").trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+            guard !key.isEmpty else { continue }
+            if seenNames.insert(key).inserted {
+                continue
+            }
+            context.delete(exercise)
         }
     }
     
@@ -158,7 +190,7 @@ class WorkoutApp: NSObject, ObservableObject {
     
     func addWorkoutSet(to session: WorkoutSession, exercise: Exercise, weight: Double, repetitions: Int) {
         let context = persistenceController.container.viewContext
-        
+
         let set = WorkoutSet(context: context)
         set.setID = UUID()
         set.weight = weight
@@ -166,7 +198,12 @@ class WorkoutApp: NSObject, ObservableObject {
         set.isCompleted = true
         set.createdAt = Date()
         set.updatedAt = Date()
-        set.exercise = exercise
+
+        if let exerciseInContext = try? context.existingObject(with: exercise.objectID) as? Exercise {
+            set.exercise = exerciseInContext
+        } else {
+            set.exercise = exercise
+        }
         set.workoutSession = session
         
         // セット番号を自動設定

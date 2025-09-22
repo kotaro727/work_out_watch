@@ -8,8 +8,9 @@ class WorkoutApp: ObservableObject {
     
     // Core managers
     let persistenceController = PersistenceController.shared
-    let healthKitManager = HealthKitManager()
+    let healthKitManager: HealthKitManager?
     let syncManager: SyncManager
+    private let isHealthKitEnabled = false
     let dataRecoveryManager: DataRecoveryManager
     
     // App state
@@ -18,9 +19,13 @@ class WorkoutApp: ObservableObject {
     
     init() {
         // Initialize dependent managers
+        let manager = isHealthKitEnabled ? HealthKitManager() : nil
+        self.healthKitManager = manager
+
         syncManager = SyncManager(
             persistenceController: persistenceController,
-            healthKitManager: healthKitManager
+            healthKitManager: manager,
+            isHealthKitEnabled: isHealthKitEnabled
         )
         dataRecoveryManager = DataRecoveryManager(
             persistenceController: persistenceController
@@ -40,9 +45,13 @@ class WorkoutApp: ObservableObject {
             // 1. Core Dataの整合性をチェック
             try await dataRecoveryManager.performDataIntegrityCheck()
             
-            // 2. HealthKit権限を確認
-            if await shouldRequestHealthKitAuthorization() {
-                try await healthKitManager.requestAuthorization()
+            // 2. HealthKit権限を確認（現在は一時的に無効化）
+            if self.isHealthKitEnabled, await shouldRequestHealthKitAuthorization() {
+                if let manager = healthKitManager {
+                    try await manager.requestAuthorization()
+                }
+            } else {
+                Self.logger.info("HealthKit authorization skipped (disabled mode)")
             }
             
             // 3. バックグラウンド同期を開始
@@ -87,7 +96,7 @@ class WorkoutApp: ObservableObject {
                 // Create default user preferences
                 let preferences = UserPreferences(context: context)
                 preferences.userID = UUID()
-                preferences.healthKitEnabled = true
+                preferences.healthKitEnabled = self.isHealthKitEnabled
                 preferences.autoSyncEnabled = true
                 preferences.defaultRestTime = 60
                 preferences.preferredUnit = "kg"
@@ -98,22 +107,20 @@ class WorkoutApp: ObservableObject {
                 Self.logger.info("Created default user preferences")
             }
             
-            // Check if default exercises exist
-            let exerciseRequest = NSFetchRequest<Exercise>(entityName: "Exercise")
-            exerciseRequest.predicate = NSPredicate(format: "isCustom == NO")
-            
-            if (try? context.fetch(exerciseRequest).isEmpty) == true {
-                self.createDefaultExercises()
-                try? context.save()
-                Self.logger.info("Created default exercises")
+            do {
+                try self.syncDefaultExercises(in: context)
+                if context.hasChanges {
+                    try context.save()
+                    Self.logger.info("Default exercises synced")
+                }
+            } catch {
+                Self.logger.error("Failed to sync default exercises: \(error.localizedDescription)")
             }
         }
     }
     
-    private func createDefaultExercises() {
-        let context = persistenceController.container.viewContext
-        
-        let defaultExercises = [
+    private var defaultExercises: [(name: String, category: String, muscles: String)] {
+        [
             ("ベンチプレス", "胸", "大胸筋、三角筋前部、上腕三頭筋"),
             ("インクラインベンチプレス", "胸", "大胸筋上部、三角筋前部"),
             ("スクワット", "脚", "大腿四頭筋、大臀筋、ハムストリング"),
@@ -123,18 +130,52 @@ class WorkoutApp: ObservableObject {
             ("プルアップ", "背中", "広背筋、上腕二頭筋"),
             ("ディップス", "胸", "大胸筋下部、上腕三頭筋"),
             ("バーベルカール", "腕", "上腕二頭筋"),
-            ("トライセップスエクステンション", "腕", "上腕三頭筋")
+            ("トライセップスエクステンション", "腕", "上腕三頭筋"),
+            ("ランジ", "脚", "大腿四頭筋、ハムストリング、大臀筋"),
+            ("レッグプレス", "脚", "大腿四頭筋、大臀筋"),
+            ("ラットプルダウン", "背中", "広背筋、上腕二頭筋"),
+            ("ケーブルフライ", "胸", "大胸筋"),
+            ("サイドレイズ", "肩", "三角筋中部"),
+            ("フェイスプル", "肩", "三角筋後部、僧帽筋"),
+            ("プランク", "体幹", "腹直筋、腹横筋、背筋群"),
+            ("ヒップスラスト", "脚", "大臀筋、ハムストリング")
         ]
-        
-        for (name, category, muscleGroups) in defaultExercises {
-            let exercise = Exercise(context: context)
-            exercise.exerciseID = UUID()
-            exercise.name = name
-            exercise.category = category
-            exercise.muscleGroups = muscleGroups
+    }
+    
+    private func syncDefaultExercises(in context: NSManagedObjectContext) throws {
+        for data in defaultExercises {
+            let request = NSFetchRequest<Exercise>(entityName: "Exercise")
+            request.predicate = NSPredicate(format: "name == %@", data.name)
+            request.fetchLimit = 1
+            let existing = try context.fetch(request).first
+            let exercise = existing ?? Exercise(context: context)
+            if exercise.exerciseID == nil {
+                exercise.exerciseID = UUID()
+            }
+            exercise.name = data.name
+            exercise.category = data.category
+            exercise.muscleGroups = data.muscles
             exercise.isCustom = false
-            exercise.createdAt = Date()
             exercise.updatedAt = Date()
+            if exercise.createdAt == nil {
+                exercise.createdAt = Date()
+            }
+        }
+        try removeDuplicateDefaultExercises(in: context)
+    }
+    
+    private func removeDuplicateDefaultExercises(in context: NSManagedObjectContext) throws {
+        let request = NSFetchRequest<Exercise>(entityName: "Exercise")
+        request.predicate = NSPredicate(format: "isCustom == NO")
+        let exercises = try context.fetch(request)
+        var seenNames = Set<String>()
+        for exercise in exercises {
+            let key = (exercise.name ?? "").trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+            guard !key.isEmpty else { continue }
+            if seenNames.insert(key).inserted {
+                continue
+            }
+            context.delete(exercise)
         }
     }
     
