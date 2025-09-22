@@ -184,27 +184,8 @@ struct InputView: View {
                                 )
                         }
                         .buttonStyle(.plain)
-
-                        // Complete Workout Button
-                        Button {
-                            completeWorkout()
-                        } label: {
-                            Text("ワークアウト完了")
-                                .font(.headline)
-                                .foregroundColor(Theme.accentSecondary)
-                                .frame(maxWidth: .infinity)
-                                .frame(height: 48)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 18, style: .continuous)
-                                        .stroke(Theme.border)
-                                )
-                        }
-                        .buttonStyle(.plain)
-
-                        Spacer(minLength: 12)
                     }
                     .padding(.horizontal)
-                    .padding(.vertical, 24)
                 }
             }
             .navigationTitle("重量・回数入力")
