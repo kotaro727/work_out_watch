@@ -2,12 +2,12 @@ import SwiftUI
 import CoreData
 
 struct ExerciseSelectionView: View {
-    @Environment(\.managedObjectContext) private var viewContext
+    @Environment(\.managedObjectContext) private var viewContext: NSManagedObjectContext
     @EnvironmentObject var workoutApp: WorkoutApp
     @Environment(\.dismiss) private var dismiss
     
     @State private var currentSession: WorkoutSession?
-    @State private var showingInputView = false
+    @State private var showingInputView: Bool = false
     @State private var selectedExercise: Exercise?
 
     @FetchRequest(
