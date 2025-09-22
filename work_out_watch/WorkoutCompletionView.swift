@@ -9,18 +9,24 @@ struct WorkoutCompletionView: View {
         session.workoutSets?.count ?? 0
     }
 
-    private var duration: String {
-        guard let start = session.startTime, let end = session.endTime else {
-            return "不明"
-        }
-        let minutes = Int(end.timeIntervalSince(start)) / 60
-        return "\(minutes)分"
-    }
-
-    private var exerciseNames: [String] {
+    private var groupedSets: [(exercise: String, sets: [WorkoutSet])] {
         guard let sets = session.workoutSets?.allObjects as? [WorkoutSet] else { return [] }
-        let names = sets.compactMap { $0.exercise?.name }
-        return Array(Set(names))
+
+        let grouped = Dictionary(grouping: sets) { set in
+            set.exercise?.name ?? "不明な種目"
+        }
+
+        return grouped
+            .map { key, value in
+                let sortedSets = value.sorted { lhs, rhs in
+                    if lhs.setNumber == rhs.setNumber {
+                        return (lhs.createdAt ?? .distantPast) < (rhs.createdAt ?? .distantPast)
+                    }
+                    return lhs.setNumber < rhs.setNumber
+                }
+                return (exercise: key, sets: sortedSets)
+            }
+            .sorted { $0.exercise < $1.exercise }
     }
 
     var body: some View {
@@ -56,42 +62,59 @@ struct WorkoutCompletionView: View {
                 }
 
                 // セッション情報
-                VStack(spacing: 16) {
+                VStack(spacing: 20) {
                     HStack {
                         VStack(alignment: .leading, spacing: 4) {
-                            Text("継続時間")
-                                .font(.caption)
-                                .foregroundColor(Theme.textSecondary)
-                            Text(duration)
-                                .font(.headline)
-                                .foregroundColor(Theme.textPrimary)
-                        }
-
-                        Spacer()
-
-                        VStack(alignment: .trailing, spacing: 4) {
-                            Text("セット数")
+                            Text("合計セット")
                                 .font(.caption)
                                 .foregroundColor(Theme.textSecondary)
                             Text("\(totalSets)セット")
                                 .font(.headline)
                                 .foregroundColor(Theme.textPrimary)
                         }
+
+                        Spacer()
                     }
 
-                    if !exerciseNames.isEmpty {
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("実施種目")
-                                .font(.caption)
-                                .foregroundColor(Theme.textSecondary)
+                    if groupedSets.isEmpty {
+                        Text("記録されたセットがありません")
+                            .font(.subheadline)
+                            .foregroundColor(Theme.textSecondary)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    } else {
+                        VStack(alignment: .leading, spacing: 18) {
+                            ForEach(groupedSets, id: \.exercise) { group in
+                                VStack(alignment: .leading, spacing: 10) {
+                                    Text(group.exercise)
+                                        .font(.headline)
+                                        .foregroundColor(Theme.textPrimary)
 
-                            Text(exerciseNames.joined(separator: ", "))
-                                .font(.subheadline)
-                                .foregroundColor(Theme.textSecondary)
-                                .lineLimit(3)
-                                .multilineTextAlignment(.leading)
+                                    VStack(spacing: 8) {
+                                        ForEach(group.sets, id: \.objectID) { set in
+                                            HStack {
+                                                Text("セット \(set.setNumber)")
+                                                    .font(.caption)
+                                                    .foregroundColor(Theme.textSecondary)
+
+                                                Spacer()
+
+                                                Text("\(set.weight, specifier: "%.1f")kg × \(set.repetitions)回")
+                                                    .font(.subheadline)
+                                                    .foregroundColor(Theme.textPrimary)
+                                            }
+                                            .padding(.vertical, 6)
+                                            .padding(.horizontal, 12)
+                                            .background(Theme.background.opacity(0.4))
+                                            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                                        }
+                                    }
+                                }
+                                if group.exercise != groupedSets.last?.exercise {
+                                    Divider()
+                                        .overlay(Theme.border)
+                                }
+                            }
                         }
-                        .frame(maxWidth: .infinity, alignment: .leading)
                     }
                 }
                 .padding()
@@ -165,9 +188,39 @@ struct WorkoutCompletionView: View {
     let context = PersistenceController.preview.container.viewContext
     let session = WorkoutSession(context: context)
     session.sessionID = UUID()
-    session.startTime = Date().addingTimeInterval(-3600)  // 1時間前
-    session.endTime = Date()
     session.isCompleted = true
+
+    let bench = Exercise(context: context)
+    bench.exerciseID = UUID()
+    bench.name = "ベンチプレス"
+
+    let squat = Exercise(context: context)
+    squat.exerciseID = UUID()
+    squat.name = "スクワット"
+
+    let benchSet1 = WorkoutSet(context: context)
+    benchSet1.setID = UUID()
+    benchSet1.setNumber = 1
+    benchSet1.weight = 60
+    benchSet1.repetitions = 8
+    benchSet1.exercise = bench
+    benchSet1.workoutSession = session
+
+    let benchSet2 = WorkoutSet(context: context)
+    benchSet2.setID = UUID()
+    benchSet2.setNumber = 2
+    benchSet2.weight = 62.5
+    benchSet2.repetitions = 6
+    benchSet2.exercise = bench
+    benchSet2.workoutSession = session
+
+    let squatSet1 = WorkoutSet(context: context)
+    squatSet1.setID = UUID()
+    squatSet1.setNumber = 1
+    squatSet1.weight = 80
+    squatSet1.repetitions = 10
+    squatSet1.exercise = squat
+    squatSet1.workoutSession = session
 
     return NavigationStack {
         WorkoutCompletionView(session: session, tabSelection: .constant(0))
